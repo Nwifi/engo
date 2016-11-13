@@ -18,9 +18,17 @@ type SpaceComponent struct {
 // Center positions the space component according to its center instead of its
 // top-left point (this avoids doing the same math each time in your systems)
 func (sc *SpaceComponent) Center(p engo.Point) {
-	xDelta := sc.Width / 2
-	yDelta := sc.Height / 2
+	xHalfWidth := sc.Width / 2
+	yHalfWidth := sc.Height / 2
+
+	sin, cos := math.Sincos(sc.Rotation * math.Pi / 180)
+
+	// Calculate displacement caused by rotation around the upper left corner
+	xDelta := xHalfWidth*cos - yHalfWidth*sin
+	yDelta := xHalfWidth*sin + yHalfWidth*cos
+
 	// update position according to point being used as our center
+
 	sc.Position.X = p.X - xDelta
 	sc.Position.Y = p.Y - yDelta
 }
@@ -43,16 +51,17 @@ func (sc SpaceComponent) AABB() engo.AABB {
 	corners := sc.Corners()
 
 	var (
-		xMin float32 = -math.MaxFloat32
-		xMax float32 = math.MaxFloat32
-		yMin float32 = -math.MaxFloat32
-		yMax float32 = math.MaxFloat32
+		xMin float32 = math.MaxFloat32
+		xMax float32 = -math.MaxFloat32
+		yMin float32 = math.MaxFloat32
+		yMax float32 = -math.MaxFloat32
 	)
 
 	for i := 0; i < 4; i++ {
 		if corners[i].X < xMin {
 			xMin = corners[i].X
-		} else if corners[i].X > xMax {
+		}
+		if corners[i].X > xMax {
 			xMax = corners[i].X
 		}
 		if corners[i].Y < yMin {
